@@ -45,6 +45,13 @@ Le parseur repère les données par libellés et échoue explicitement si la pag
 - Le rendement est rétrospectif : les acomptes 2026 sont plus bas.
 - Dividende et données des bulletins à mettre à jour à la main.
 
+## Pistes d'amélioration
+
+- Historiser les carnets d'ordres (récupération planifiée) pour affiner l'estimation et mesurer le délai de revente.
+- Préremplir le mandat d'achat PDF de la société de gestion à partir des informations saisies.
+- Intégrer d'autres SCPI, en commençant par Primovie dont la page est déjà lisible par le parseur.
+- Un assistant conversationnel qui explique les termes et la lecture de la page, en répondant uniquement à partir des données affichées et sans conseil en investissement.
+
 ## Temps consacré et utilisation de l'IA
 
 Environ 3 heures.
