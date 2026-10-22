@@ -22,6 +22,8 @@ export interface ConfrontationPanelProps {
   snapshot: MarketSnapshot;
   estimate: ConfrontationEstimate;
   dividend: { record: DividendRecord; isPreviousYear: boolean } | null;
+  order: DraftOrder;
+  onOrderChange: (order: DraftOrder) => void;
 }
 
 export interface PurchaseEmailFlowProps {

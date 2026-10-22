@@ -133,7 +133,7 @@ function Simulator({ props, dividend }: { props: YieldPanelProps; dividend: Divi
   const small = yieldWithFixedFees(dps, order.netPrice, 10, scpi.fees);
   const large = yieldWithFixedFees(dps, order.netPrice, 1000, scpi.fees);
   return (
-    <Card title="Simuler votre investissement (frais fixes inclus)">
+    <Card title="Coût et rendement de votre achat">
       <div className="form-row">
         <NumberField
           label="Nombre de parts"
@@ -172,7 +172,7 @@ function Simulator({ props, dividend }: { props: YieldPanelProps; dividend: Divi
         {formatPct(small)} pour 10 parts, contre {formatPct(large)} pour 1 000 parts.
       </p>
       <p className="small muted">
-        Cet ordre (nombre de parts et prix) est repris à l'étape 4 pour préparer l'e-mail d'achat.
+        Calculé comme si vous achetiez à ce prix. Le même ordre sert à la section 3 (serait-il servi, et à quel prix) et à l'email de l'étape 4.
       </p>
     </Card>
   );

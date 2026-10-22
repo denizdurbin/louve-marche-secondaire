@@ -1,8 +1,9 @@
 import type { ConfrontationEstimate, MarketSnapshot, PurchaseRequestErrors, ScpiInfo } from '@louve/core';
-import { buyerPrice, formatDateFr, formatEur, formatInt, purchaseCost } from '@louve/core';
+import { buyerPrice, formatDateFr, formatEur, formatInt, purchaseCost, simulateClientOrder } from '@louve/core';
 import { Card, Note } from './ui';
 import { TextField } from './PurchaseEmailFields';
 import { parseNumber, type PurchaseFormState } from './PurchaseEmailForm';
+import { describeOutcome } from './orderOutcome';
 
 interface StepOrderProps {
   uid: string;
@@ -67,7 +68,11 @@ export function StepOrder({ uid, scpi, snapshot, estimate, form, errors, bounds,
         servie.
       </p>
       <OrderSummary scpi={scpi} shares={validShares ? shares : null} price={validPrice ? price : null} />
-      <PriceHints estimate={estimate} snapshot={snapshot} price={validPrice ? price : null} />
+      <PriceHints
+        snapshot={snapshot}
+        order={validShares && validPrice ? { shares, limitNet: price } : null}
+        acceptPartial={form.acceptPartial}
+      />
     </>
   );
 }
@@ -104,21 +109,21 @@ function OrderSummary(props: { scpi: ScpiInfo; shares: number | null; price: num
   );
 }
 
-function PriceHints(props: { estimate: ConfrontationEstimate; snapshot: MarketSnapshot; price: number | null }) {
-  const { estimate, snapshot, price } = props;
+function PriceHints(props: {
+  snapshot: MarketSnapshot;
+  order: { shares: number; limitNet: number } | null;
+  acceptPartial: boolean;
+}) {
+  const { snapshot, order, acceptPartial } = props;
   const { nextConfrontation, orderDeadline } = snapshot;
+  const message = order
+    ? describeOutcome(simulateClientOrder(snapshot.orderBook, snapshot.lastExecutionPrice, order), order, acceptPartial)
+    : null;
   return (
     <div className="pef-hints">
-      {price !== null && estimate.price !== null && price < estimate.price && (
-        <Note tone="warning">
-          En dessous du prix estimé de la prochaine confrontation ({formatEur(estimate.price)}) : votre ordre risque de
-          ne pas être servi.
-        </Note>
-      )}
-      {price !== null && estimate.price !== null && price >= estimate.price && (
-        <Note>
-          Si l'ordre est exécuté, vous paierez le prix d'exécution (le même pour tous), pas forcément votre prix
-          maximum.
+      {message && (
+        <Note tone={message.tone} title={`À la prochaine confrontation : ${message.title.toLowerCase()}`}>
+          {message.text} Estimation sur le carnet visible aujourd'hui, qui peut changer d'ici la date limite.
         </Note>
       )}
       {orderDeadline && (

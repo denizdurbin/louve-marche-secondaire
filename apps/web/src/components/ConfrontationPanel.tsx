@@ -1,13 +1,11 @@
-import { useState } from 'react';
 import {
   buyerPrice,
-  estimateConfrontation,
   formatDateFr,
   formatEur,
   formatInt,
   formatPct,
   purchaseCost,
-  withClientBid,
+  simulateClientOrder,
   yieldFeesIncluded,
 } from '@louve/core';
 import type { ConfrontationEstimate, LevelFill } from '@louve/core';
@@ -15,9 +13,8 @@ import type { ConfrontationPanelProps } from './props';
 import { Card, Note, Section, Stat } from './ui';
 import { CurveTable, SupplyDemandChart } from './SupplyDemandChart';
 import { NumberField } from './NumberField';
+import { describeOutcome } from './orderOutcome';
 import './Panels.css';
-
-const DEFAULT_SIM_SHARES = 100;
 
 function signedPct(ratio: number): string {
   const text = formatPct(Math.abs(ratio));
@@ -178,93 +175,73 @@ function WhoIsServed({ estimate }: { estimate: ConfrontationEstimate }) {
   );
 }
 
-interface SimResult {
-  estimate: ConfrontationEstimate;
-  clientServed: number;
-}
-
-/** The client is assumed last in time priority at its price level. */
-function simulate(props: ConfrontationPanelProps, shares: number, limitNet: number): SimResult {
-  const { snapshot } = props;
-  const estimate = estimateConfrontation(withClientBid(snapshot.orderBook, { shares, limitNet }), snapshot.lastExecutionPrice);
-  const level = estimate.fills.bids.find((b) => b.limitNet === limitNet);
-  const servedAtLevel = level?.served ?? 0;
-  const levelShares = level?.shares ?? shares;
-  const clientServed = Math.min(Math.max(servedAtLevel - (levelShares - shares), 0), shares);
-  return { estimate, clientServed };
-}
-
-function SimulationResult({ props, shares, limit }: { props: ConfrontationPanelProps; shares: number; limit: number }) {
-  const { scpi, estimate: current } = props;
-  const sim = simulate(props, shares, limit);
-  const price = sim.estimate.price;
-  if (price === null) {
-    return <p>Avec votre ordre, aucun échange n'aurait lieu : votre ordre ne serait pas servi.</p>;
-  }
-  const cost = purchaseCost({ netPrice: price, shares: sim.clientServed, fees: scpi.fees, includeFixedFees: sim.clientServed > 0 });
-  const status =
-    sim.clientServed === 0
-      ? 'Votre ordre ne serait pas servi.'
-      : sim.clientServed < shares
-        ? `Votre ordre serait servi en partie : ${formatInt(sim.clientServed)} sur ${parts(shares)}.`
-        : `Votre ordre serait servi en totalité : ${parts(shares)}.`;
+function SimulationResult({ props }: { props: ConfrontationPanelProps }) {
+  const { scpi, snapshot, estimate: current, order } = props;
+  const outcome = simulateClientOrder(snapshot.orderBook, snapshot.lastExecutionPrice, {
+    shares: order.shares,
+    limitNet: order.netPrice,
+  });
+  const message = describeOutcome(outcome, { shares: order.shares, limitNet: order.netPrice });
+  const price = outcome.estimate.price;
+  const cost =
+    price !== null && outcome.served > 0
+      ? purchaseCost({ netPrice: price, shares: outcome.served, fees: scpi.fees, includeFixedFees: true })
+      : null;
   const move =
-    current.price === null
-      ? "Sans votre ordre, aucun échange n'était attendu."
-      : current.price === price
-        ? `Le prix estimé reste à ${formatEur(price)}.`
-        : `Le prix estimé passerait de ${formatEur(current.price)} à ${formatEur(price)}.`;
+    price === null
+      ? 'aucun échange attendu'
+      : current.price === null
+        ? "sans votre ordre, aucun échange n'était attendu"
+        : current.price === price
+          ? 'inchangé par votre ordre'
+          : `${formatEur(current.price)} sans votre ordre`;
   return (
     <>
       <div className="grid grid-stats">
-        <Stat label="Nouveau prix estimé (hors frais)" value={formatEur(price)} caption={move} />
-        <Stat label="Parts obtenues" value={`${formatInt(sim.clientServed)} / ${formatInt(shares)}`} caption={status} />
+        <Stat label="Prix d'exécution estimé avec votre ordre" value={price === null ? '—' : formatEur(price)} caption={move} />
+        <Stat label="Parts obtenues" value={`${formatInt(outcome.served)} / ${formatInt(order.shares)}`} />
         <Stat
-          label="Coût frais inclus"
-          value={sim.clientServed > 0 ? formatEur(cost.total) : '—'}
-          caption={
-            sim.clientServed > 0
-              ? `${formatEur(cost.netAmount)} + frais variables ${formatEur(cost.variableFees)} + frais fixes ${formatEur(cost.fixedFees)}`
-              : 'rien à payer si non servi'
-          }
+          label="Coût probable, frais inclus"
+          value={cost ? formatEur(cost.total) : '—'}
+          caption={cost ? `au prix d'exécution, frais fixes de ${formatEur(cost.fixedFees)} compris` : 'rien à payer si non servi'}
         />
       </div>
-      <p className="small muted">
-        Hypothèse prudente : à égalité de prix limite, les ordres sont servis dans l'ordre d'arrivée et le vôtre serait le dernier.
-        Vous payez le prix d'exécution ({formatEur(price)}), pas votre limite.
-      </p>
+      <Note tone={message.tone} title={message.title}>
+        {message.text}
+      </Note>
     </>
   );
 }
 
 function OrderSimulator({ props }: { props: ConfrontationPanelProps }) {
-  const { estimate, snapshot } = props;
-  const [shares, setShares] = useState(DEFAULT_SIM_SHARES);
-  const [limit, setLimit] = useState(estimate.price ?? snapshot.lastExecutionPrice);
+  const { order, onOrderChange } = props;
   return (
-    <Card title="Simuler votre ordre d'achat">
+    <Card title="Votre ordre serait-il servi ?">
+      <p className="small muted">
+        Votre ordre est ajouté au carnet visible et la confrontation est recalculée. C'est le même ordre que dans « Coût et
+        rendement de votre achat » et dans l'email de l'étape 4.
+      </p>
       <div className="form-row">
         <NumberField
           label="Nombre de parts"
-          value={shares}
+          value={order.shares}
           step={1}
           min={1}
           isValid={(n) => Number.isInteger(n) && n >= 1}
           errorText="Entrez un nombre entier de parts, au moins 1."
-          onValidChange={setShares}
+          onValidChange={(shares) => onOrderChange({ ...order, shares })}
         />
         <NumberField
-          label="Prix limite par part (hors frais)"
-          value={limit}
+          label="Prix maximum par part (hors frais)"
+          value={order.netPrice}
           step="any"
           min={0}
           isValid={(n) => n > 0}
           errorText="Entrez un prix supérieur à 0."
-          onValidChange={setLimit}
-          hint="Le prix maximum que vous acceptez de payer."
+          onValidChange={(netPrice) => onOrderChange({ ...order, netPrice })}
         />
       </div>
-      <SimulationResult props={props} shares={shares} limit={limit} />
+      <SimulationResult props={props} />
     </Card>
   );
 }

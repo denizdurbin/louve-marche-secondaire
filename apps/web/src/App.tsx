@@ -123,7 +123,14 @@ function Dashboard({ scpi, market, refresh }: { scpi: ScpiInfo; market: MarketRe
             order={order}
             onOrderChange={setOrder}
           />
-          <ConfrontationPanel scpi={scpi} snapshot={snapshot} estimate={estimate} dividend={dividend} />
+          <ConfrontationPanel
+            scpi={scpi}
+            snapshot={snapshot}
+            estimate={estimate}
+            dividend={dividend}
+            order={order}
+            onOrderChange={setOrder}
+          />
           <PurchaseEmailFlow scpi={scpi} snapshot={snapshot} estimate={estimate} order={order} onOrderChange={setOrder} />
         </main>
         <aside className="summary" aria-label="En bref">
