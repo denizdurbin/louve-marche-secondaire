@@ -8,4 +8,5 @@ async function getJson<T>(url: string): Promise<T> {
 }
 
 export const fetchScpi = (id: string) => getJson<ScpiInfo>(`/api/scpis/${id}`);
-export const fetchMarket = (id: string) => getJson<MarketResponse>(`/api/scpis/${id}/market`);
+export const fetchMarket = (id: string, refresh = false) =>
+  getJson<MarketResponse>(`/api/scpis/${id}/market${refresh ? '?refresh=1' : ''}`);

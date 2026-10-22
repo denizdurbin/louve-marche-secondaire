@@ -23,7 +23,7 @@ import { Note } from './components/ui';
 const SCPI_ID = 'primopierre';
 
 export function App() {
-  const { state, reload } = useScpiData(SCPI_ID);
+  const { state, reload, refreshMarket, refreshing, refreshError, upToDate } = useScpiData(SCPI_ID);
 
   if (state.status === 'loading') return <p className="state">Chargement des données de marché…</p>;
   if (state.status === 'error') {
@@ -38,10 +38,23 @@ export function App() {
       </div>
     );
   }
-  return <Dashboard scpi={state.scpi} market={state.market} />;
+  return (
+    <Dashboard
+      scpi={state.scpi}
+      market={state.market}
+      refresh={{ run: () => void refreshMarket(), pending: refreshing, error: refreshError, upToDate }}
+    />
+  );
 }
 
-function Dashboard({ scpi, market }: { scpi: ScpiInfo; market: MarketResponse }) {
+interface RefreshControl {
+  run: () => void;
+  pending: boolean;
+  error: string | null;
+  upToDate: boolean;
+}
+
+function Dashboard({ scpi, market, refresh }: { scpi: ScpiInfo; market: MarketResponse; refresh: RefreshControl }) {
   const { snapshot } = market;
   const estimate = useMemo(
     () => estimateConfrontation(snapshot.orderBook, snapshot.lastExecutionPrice),
@@ -69,8 +82,20 @@ function Dashboard({ scpi, market }: { scpi: ScpiInfo; market: MarketResponse })
           rapporterait une part, le prix probable de la prochaine confrontation, et l'email pour préparer votre achat.
         </p>
         <p className="meta">
-          {snapshot.sourceUpdatedAt && <>Données du site officiel au {formatDateFr(snapshot.sourceUpdatedAt)}</>}
+          {snapshot.sourceUpdatedAt && <>Données du site officiel au {formatDateFr(snapshot.sourceUpdatedAt)}, </>}
+          récupérées à {formatTimeParis(snapshot.scrapedAt)}
           {snapshot.nextConfrontation && <> · Prochaine confrontation le {formatDateFr(snapshot.nextConfrontation)}</>}
+          {' · '}
+          <button type="button" className="link-button" onClick={refresh.run} disabled={refresh.pending}>
+            {refresh.pending ? 'Actualisation…' : 'Actualiser'}
+          </button>
+          {refresh.upToDate && <span role="status"> Déjà à jour.</span>}
+          {refresh.error && (
+            <span className="meta-error" role="alert">
+              {' '}
+              Échec de l'actualisation : {refresh.error}
+            </span>
+          )}
         </p>
       </header>
       {market.stale && (
@@ -133,6 +158,9 @@ function Dashboard({ scpi, market }: { scpi: ScpiInfo; market: MarketResponse })
     </>
   );
 }
+
+const formatTimeParis = (iso: string) =>
+  new Date(iso).toLocaleTimeString('fr-FR', { timeZone: 'Europe/Paris', hour: '2-digit', minute: '2-digit' });
 
 function SummaryRow(props: { label: string; value: string; note?: string }) {
   return (

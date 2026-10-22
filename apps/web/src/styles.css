@@ -148,3 +148,12 @@ details summary:hover { color: var(--ink); }
 }
 
 .mo-served { white-space: nowrap; }
+
+/* Text-style button, for secondary actions inside a sentence. */
+button.link-button {
+  background: none; border: 0; padding: 0; font: inherit; color: var(--accent);
+  text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px;
+}
+button.link-button:hover { background: none; color: var(--accent-strong); }
+button.link-button:disabled { color: var(--text-3); text-decoration: none; opacity: 1; cursor: progress; }
+.meta-error { color: var(--error); }

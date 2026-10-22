@@ -29,7 +29,7 @@ export function createApp(deps: { market: MarketService }) {
       return;
     }
     try {
-      res.json(await deps.market.getMarket(scpi));
+      res.json(await deps.market.getMarket(scpi, { refresh: req.query.refresh === '1' }));
     } catch (err) {
       if (!(err instanceof MarketUnavailableError)) throw err;
       res.status(503).json({ error: 'Données de marché indisponibles pour le moment', detail: err.message });

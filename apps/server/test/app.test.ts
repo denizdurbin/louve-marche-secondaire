@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.js';
-import { CACHE_TTL_MS, createMarketService, type FetchHtml } from '../src/market/marketService.js';
+import { CACHE_TTL_MS, MIN_REFRESH_INTERVAL_MS, createMarketService, type FetchHtml } from '../src/market/marketService.js';
 import { memorySnapshotStore } from '../src/market/snapshotStore.js';
 
 const fixture = readFileSync(new URL('./fixtures/primopierre-2026-10-22-1109.html', import.meta.url), 'utf8');
@@ -49,6 +49,19 @@ describe('API', () => {
 
     t.advance(2);
     await request(t.app).get('/api/scpis/primopierre/market').expect(200);
+    expect(t.calls()).toBe(2);
+  });
+
+  it('refetches on ?refresh=1, but at most once a minute', async () => {
+    const t = setup(async () => fixture);
+    await request(t.app).get('/api/scpis/primopierre/market').expect(200);
+
+    t.advance(MIN_REFRESH_INTERVAL_MS - 1);
+    await request(t.app).get('/api/scpis/primopierre/market?refresh=1').expect(200);
+    expect(t.calls()).toBe(1);
+
+    t.advance(2);
+    await request(t.app).get('/api/scpis/primopierre/market?refresh=1').expect(200);
     expect(t.calls()).toBe(2);
   });
 

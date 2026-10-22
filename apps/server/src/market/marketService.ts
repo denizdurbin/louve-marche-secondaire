@@ -11,6 +11,8 @@ export class MarketUnavailableError extends Error {
 
 // The source refreshes its order book every 30 minutes: scraping more often is pointless and impolite.
 export const CACHE_TTL_MS = 30 * 60 * 1000;
+// A user-requested refresh bypasses the cache, but never more than once a minute per SCPI.
+export const MIN_REFRESH_INTERVAL_MS = 60 * 1000;
 const FETCH_TIMEOUT_MS = 10_000;
 
 export const fetchHtml: FetchHtml = async (url) => {
@@ -27,10 +29,11 @@ export function createMarketService(deps: { store: SnapshotStore; fetchHtml: Fet
   const cache = new Map<string, { snapshot: MarketSnapshot; fetchedAt: number }>();
 
   return {
-    async getMarket(scpi: ScpiConfig): Promise<MarketResponse> {
+    async getMarket(scpi: ScpiConfig, opts: { refresh?: boolean } = {}): Promise<MarketResponse> {
       const { id, sourceUrl } = scpi.info;
       const cached = cache.get(id);
-      if (cached && now() - cached.fetchedAt < CACHE_TTL_MS) {
+      const maxAge = opts.refresh ? MIN_REFRESH_INTERVAL_MS : CACHE_TTL_MS;
+      if (cached && now() - cached.fetchedAt < maxAge) {
         return { snapshot: cached.snapshot, stale: false };
       }
 
