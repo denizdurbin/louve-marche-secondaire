@@ -272,7 +272,7 @@ function OrderSimulator({ props }: { props: ConfrontationPanelProps }) {
 function Limits({ props }: { props: ConfrontationPanelProps }) {
   const { snapshot } = props;
   return (
-    <Note title="Hypothèses et limites">
+    <Note tone="warning" title="Hypothèses et limites">
       <ul>
         <li>
           Seuls les {snapshot.orderBook.visibleDepth} meilleurs niveaux de prix de chaque côté sont publiés : des ordres plus
