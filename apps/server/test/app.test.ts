@@ -100,3 +100,18 @@ describe('API', () => {
     expect(res.body.error).toBeDefined();
   });
 });
+
+describe('API with inconsistent data', () => {
+  it('serves the last good snapshot when the new one fails the sanity checks', async () => {
+    let html = fixture;
+    const t = setup(async () => html);
+    await request(t.app).get('/api/scpis/primopierre/market').expect(200);
+
+    html = fixture.replace(/35,00\s*€\s*\/\s*Part/, '99,00 € / Part');
+    t.advance(CACHE_TTL_MS + 1);
+    const res = await request(t.app).get('/api/scpis/primopierre/market').expect(200);
+    expect(res.body.stale).toBe(true);
+    expect(res.body.error).toMatch(/incohérentes/);
+    expect(res.body.snapshot.lastBuyerPrice).toBe(35);
+  });
+});

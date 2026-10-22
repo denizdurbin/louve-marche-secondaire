@@ -1,6 +1,7 @@
 import type { MarketResponse, MarketSnapshot } from '@louve/core';
 import type { ScpiConfig } from '../scpi/registry.js';
 import type { SnapshotStore } from './snapshotStore.js';
+import { validateSnapshot } from './validateSnapshot.js';
 
 export type FetchHtml = (url: string) => Promise<string>;
 
@@ -39,6 +40,7 @@ export function createMarketService(deps: { store: SnapshotStore; fetchHtml: Fet
 
       try {
         const snapshot = scpi.parse(await deps.fetchHtml(sourceUrl), { scpiId: id, scrapedAt: new Date(now()) });
+        validateSnapshot(snapshot, scpi.info.fees);
         cache.set(id, { snapshot, fetchedAt: now() });
         await deps.store.save(snapshot);
         return { snapshot, stale: false };
