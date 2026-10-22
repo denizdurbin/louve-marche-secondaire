@@ -135,3 +135,29 @@ export function withClientBid(book: Book, bid: { shares: number; limitNet: numbe
   const asks: AskLevel[] = book.asks.map((a) => ({ ...a }));
   return { bids, asks };
 }
+
+export interface ClientOrderOutcome {
+  /** The estimate once the client's order is added to the book. */
+  estimate: ConfrontationEstimate;
+  /** Shares the client would get, between 0 and the shares asked. */
+  served: number;
+  /** Shares already bid at exactly the client's limit; we assume they were registered first. */
+  sharesAheadAtLimit: number;
+}
+
+/**
+ * Would the client's buy order be served at the next confrontation?
+ * Within a price level orders are served by registration time, which we don't know: we assume
+ * the client's order is the most recent, i.e. served last at its level (the cautious case).
+ */
+export function simulateClientOrder(
+  book: Book,
+  lastExecutionPrice: number | null,
+  order: { shares: number; limitNet: number },
+): ClientOrderOutcome {
+  const sharesAheadAtLimit = sumShares(book.bids.filter((b) => b.limitNet === order.limitNet));
+  const estimate = estimateConfrontation(withClientBid(book, order), lastExecutionPrice);
+  const servedAtLevel = estimate.fills.bids.find((b) => b.limitNet === order.limitNet)?.served ?? 0;
+  const served = Math.min(Math.max(servedAtLevel - sharesAheadAtLimit, 0), order.shares);
+  return { estimate, served, sharesAheadAtLimit };
+}

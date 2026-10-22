@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { estimateConfrontation, withClientBid } from '../src/confrontation';
+import { estimateConfrontation, simulateClientOrder, withClientBid } from '../src/confrontation';
 import type { AskLevel, BidLevel } from '../src/types';
 import { todayBook } from './fixtures';
 
@@ -78,5 +78,34 @@ describe('withClientBid', () => {
     expect(b.bids).toHaveLength(4);
     expect(b.bids.find((l) => l.limitNet === 27)?.shares).toBe(1100);
     expect(todayBook.bids.find((l) => l.limitNet === 27)?.shares).toBe(1000);
+  });
+});
+
+describe('simulateClientOrder', () => {
+  it('serves an order above the clearing price in full, and shows its effect on the price', () => {
+    const out = simulateClientOrder(todayBook, 31.88, { shares: 100, limitNet: 22 });
+    expect(out.estimate.price).toBe(22);
+    expect(out.estimate.sharesTraded).toBe(1118);
+    expect(out.served).toBe(100);
+    expect(out.sharesAheadAtLimit).toBe(0);
+  });
+
+  it('does not serve an order below the clearing price', () => {
+    const out = simulateClientOrder(todayBook, 31.88, { shares: 100, limitNet: 20 });
+    expect(out.estimate.price).toBe(22);
+    expect(out.served).toBe(0);
+    expect(out.sharesAheadAtLimit).toBe(1000);
+  });
+
+  it('puts the client behind earlier orders at the same price, and ahead of them one cent higher', () => {
+    const book = { bids: [bid(10, 30), bid(50, 20)], asks: [ask(40, 20)] };
+    const atPrice = simulateClientOrder(book, 31.88, { shares: 10, limitNet: 20 });
+    expect(atPrice.estimate.price).toBe(20);
+    expect(atPrice.sharesAheadAtLimit).toBe(50);
+    expect(atPrice.served).toBe(0);
+
+    const aboveBy1Cent = simulateClientOrder(book, 31.88, { shares: 10, limitNet: 20.01 });
+    expect(aboveBy1Cent.estimate.price).toBe(20);
+    expect(aboveBy1Cent.served).toBe(10);
   });
 });
