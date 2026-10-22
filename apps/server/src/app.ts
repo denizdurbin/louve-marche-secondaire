@@ -2,7 +2,8 @@ import express from 'express';
 import { getScpi, listScpis } from './scpi/registry.js';
 import { MarketUnavailableError, type MarketService } from './market/marketService.js';
 
-export function createApp(deps: { market: MarketService }) {
+/** `webDir`: the built front end (apps/web/dist), served by the same process in production. */
+export function createApp(deps: { market: MarketService; webDir?: string }) {
   const app = express();
 
   app.get('/api/health', (_req, res) => {
@@ -35,6 +36,8 @@ export function createApp(deps: { market: MarketService }) {
       res.status(503).json({ error: 'Données de marché indisponibles pour le moment', detail: err.message });
     }
   });
+
+  if (deps.webDir) app.use(express.static(deps.webDir));
 
   return app;
 }

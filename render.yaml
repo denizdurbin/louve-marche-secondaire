@@ -1,0 +1,9 @@
+# Render blueprint: one web service running the API, which also serves the built React app.
+services:
+  - type: web
+    name: louve-primopierre
+    runtime: node
+    plan: free
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
