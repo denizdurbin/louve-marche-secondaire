@@ -1,5 +1,15 @@
 import { useMemo, useState } from 'react';
-import { dividendForPreviousYear, estimateConfrontation, formatDateFr } from '@louve/core';
+import {
+  dividendForPreviousYear,
+  estimateConfrontation,
+  formatDateFr,
+  formatEur,
+  formatInt,
+  formatPct,
+  purchaseCost,
+  yieldFeesIncluded,
+  yieldWithFixedFees,
+} from '@louve/core';
 import type { MarketResponse, ScpiInfo } from '@louve/core';
 import { useScpiData } from './useScpiData';
 import type { DraftOrder } from './order';
@@ -38,49 +48,100 @@ function Dashboard({ scpi, market }: { scpi: ScpiInfo; market: MarketResponse })
     [snapshot],
   );
   const dividend = useMemo(() => dividendForPreviousYear(scpi.dividends, new Date()), [scpi]);
+  const lastYield = dividend ? yieldFeesIncluded(dividend.record.grossPerShare, snapshot.lastExecutionPrice, scpi.fees) : null;
   const [order, setOrder] = useState<DraftOrder>(() => ({
     shares: 100,
     netPrice: estimate.price ?? snapshot.lastExecutionPrice,
   }));
 
+  const orderCost = purchaseCost({ netPrice: order.netPrice, shares: order.shares, fees: scpi.fees, includeFixedFees: true });
+  const orderYield = dividend ? yieldWithFixedFees(dividend.record.grossPerShare, order.netPrice, order.shares, scpi.fees) : null;
+
   return (
     <>
-      <header className="app-header">
-        <div className="app-header-inner">
-          <h1>SCPI {scpi.name} · marché secondaire</h1>
-          <p>
-            {scpi.managementCompany} · données du site officiel
-            {snapshot.sourceUpdatedAt && <> mises à jour le {formatDateFr(snapshot.sourceUpdatedAt)} (heure de Paris)</>}
-          </p>
-        </div>
+      <header className="masthead">
+        <p className="kicker">
+          <span className="wordmark">louve invest</span> · Marché secondaire des SCPI
+        </p>
+        <h1>{scpi.name}</h1>
+        <p className="dek">
+          Le marché des parts de la SCPI de bureaux gérée par {scpi.managementCompany} : où en sont les prix, ce que
+          rapporterait une part, le prix probable de la prochaine confrontation, et l'email pour préparer votre achat.
+        </p>
+        <p className="meta">
+          {snapshot.sourceUpdatedAt && <>Données du site officiel au {formatDateFr(snapshot.sourceUpdatedAt)}</>}
+          {snapshot.nextConfrontation && <> · Prochaine confrontation le {formatDateFr(snapshot.nextConfrontation)}</>}
+        </p>
       </header>
       {market.stale && (
-        <div className="banner-stale" role="alert">
-          Le site source est momentanément indisponible ou a changé : affichage des dernières données valides, récupérées
+        <p className="banner-stale" role="alert">
+          Le site source est momentanément indisponible ou a changé. Affichage des dernières données valides, récupérées
           le {new Date(snapshot.scrapedAt).toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}.
-        </div>
+        </p>
       )}
       <nav className="app-nav" aria-label="Sections">
         <div className="app-nav-inner">
-          <a href="#marche">1. Marché</a>
-          <a href="#rendement">2. Rendement</a>
-          <a href="#confrontation">3. Prochaine confrontation</a>
-          <a href="#achat">4. Préparer l'achat</a>
+          <a href="#marche">Le marché</a>
+          <a href="#rendement">Rendement</a>
+          <a href="#confrontation">Prochaine confrontation</a>
+          <a href="#achat">Préparer l'achat</a>
         </div>
       </nav>
-      <main className="app-main">
-        <MarketOverview scpi={scpi} snapshot={snapshot} estimate={estimate} />
-        <YieldPanel
-          scpi={scpi}
-          snapshot={snapshot}
-          estimate={estimate}
-          dividend={dividend}
-          order={order}
-          onOrderChange={setOrder}
-        />
-        <ConfrontationPanel scpi={scpi} snapshot={snapshot} estimate={estimate} dividend={dividend} />
-        <PurchaseEmailFlow scpi={scpi} snapshot={snapshot} estimate={estimate} order={order} onOrderChange={setOrder} />
-      </main>
+      <div className="layout">
+        <main className="app-main">
+          <MarketOverview scpi={scpi} snapshot={snapshot} estimate={estimate} />
+          <YieldPanel
+            scpi={scpi}
+            snapshot={snapshot}
+            estimate={estimate}
+            dividend={dividend}
+            order={order}
+            onOrderChange={setOrder}
+          />
+          <ConfrontationPanel scpi={scpi} snapshot={snapshot} estimate={estimate} dividend={dividend} />
+          <PurchaseEmailFlow scpi={scpi} snapshot={snapshot} estimate={estimate} order={order} onOrderChange={setOrder} />
+        </main>
+        <aside className="summary" aria-label="En bref">
+          <h2 className="summary-title">En bref</h2>
+          <dl className="summary-list">
+            <SummaryRow label="Dernier prix d'exécution" value={formatEur(snapshot.lastExecutionPrice)} note="net vendeur" />
+            {lastYield !== null && dividend && (
+              <SummaryRow label="Rendement frais inclus" value={formatPct(lastYield)} note={`dividende ${dividend.record.year}`} />
+            )}
+            <SummaryRow
+              label="Prix estimé, prochaine confrontation"
+              value={estimate.price === null ? '—' : formatEur(estimate.price)}
+              note={estimate.price === null ? 'aucun échange attendu' : `${formatInt(estimate.sharesTraded)} parts`}
+            />
+            {snapshot.orderDeadline && <SummaryRow label="Date limite des ordres" value={formatDateFr(snapshot.orderDeadline)} />}
+          </dl>
+          <h2 className="summary-title">Votre ordre</h2>
+          <dl className="summary-list">
+            <SummaryRow label={`${formatInt(order.shares)} parts à ${formatEur(order.netPrice)}`} value={formatEur(orderCost.total)} note="frais inclus" />
+            {orderYield !== null && <SummaryRow label="Rendement, frais fixes inclus" value={formatPct(orderYield)} />}
+          </dl>
+          <a className="button summary-cta" href="#achat">
+            Préparer l'email
+          </a>
+        </aside>
+      </div>
+      <footer className="app-footer">
+        Sources : site officiel {scpi.managementCompany}, bulletins trimestriels et mandat d'achat, détaillées dans chaque
+        section. Les performances passées ne préjugent pas des performances futures. Aucun ordre n'est transmis par cette
+        application.
+      </footer>
     </>
+  );
+}
+
+function SummaryRow(props: { label: string; value: string; note?: string }) {
+  return (
+    <div className="summary-row">
+      <dt>{props.label}</dt>
+      <dd>
+        {props.value}
+        {props.note && <span>{props.note}</span>}
+      </dd>
+    </div>
   );
 }

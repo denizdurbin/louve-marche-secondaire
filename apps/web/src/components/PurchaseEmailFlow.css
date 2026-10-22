@@ -1,13 +1,8 @@
-.pef-stepper { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 24px; }
-.pef-stepper li { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: var(--text-3); }
-.pef-stepper li.is-current { color: var(--text); font-weight: 600; }
+.pef-stepper { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0 28px; border-bottom: 1px solid var(--hairline); }
+.pef-stepper li { display: flex; align-items: baseline; gap: 8px; padding: 8px 0; font-size: 0.88rem; color: var(--text-3); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.pef-stepper li.is-current { color: var(--ink); font-weight: 600; border-bottom-color: var(--ink); }
 .pef-stepper li.is-done { color: var(--text-2); }
-.pef-stepper-num {
-  display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px;
-  border-radius: 50%; border: 1px solid var(--border); background: var(--surface); font-size: 0.8rem;
-}
-.pef-stepper li.is-current .pef-stepper-num { background: var(--accent); border-color: var(--accent); color: #fff; }
-.pef-stepper li.is-done .pef-stepper-num { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.pef-stepper-num { font-family: var(--serif); font-size: 1rem; }
 
 .pef-form { display: flex; flex-direction: column; gap: 16px; }
 .pef-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
@@ -23,10 +18,10 @@
 .pef-summary { display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; margin: 0; font-size: 0.9rem; }
 .pef-summary dt { color: var(--text-2); }
 .pef-summary dd { margin: 0; text-align: right; font-weight: 600; }
-.pef-summary .pef-total { border-top: 1px solid var(--border); padding-top: 6px; color: var(--text); font-weight: 600; }
+.pef-summary .pef-total { border-top: 1px solid var(--rule); padding-top: 6px; color: var(--text); font-weight: 600; }
 
-.pef-email { border: 1px solid var(--border); border-radius: 8px; background: #fff; overflow: hidden; }
-.pef-headers { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0; padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+.pef-email { border: 1px solid var(--hairline); border-radius: 4px; background: var(--surface); overflow: hidden; }
+.pef-headers { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0; padding: 12px 16px; border-bottom: 1px solid var(--hairline); font-size: 0.9rem; }
 .pef-headers dt { color: var(--text-3); }
 .pef-headers dd { margin: 0; overflow-wrap: anywhere; }
 .pef-body {

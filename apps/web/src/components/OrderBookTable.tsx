@@ -99,7 +99,7 @@ export function OrderBookTable({
 
   return (
     <div className="mo-chart-stack">
-      <div className="grid grid-2">
+      <div className="grid">
         <SideTable title="Acheteurs (ordres d'achat)" grossLabel="Prix limite frais inclus" rows={bidRows} />
         <SideTable title="Vendeurs (ordres de vente)" grossLabel="Équivalent frais inclus" rows={askRows} />
       </div>

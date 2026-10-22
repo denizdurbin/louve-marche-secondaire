@@ -28,12 +28,10 @@ const parts = (n: number) => `${formatInt(n)} part${n > 1 ? 's' : ''}`;
 
 function EstimateStats({ props }: { props: ConfrontationPanelProps }) {
   const { scpi, snapshot, estimate, dividend } = props;
-  const date = snapshot.nextConfrontation ? formatDateFr(snapshot.nextConfrontation) : 'non communiquée';
   if (estimate.price === null) {
     return (
       <div className="grid grid-stats">
         <Stat emphasis label="Prix estimé" value="Aucun échange" caption="aucun acheteur n'atteint un vendeur" />
-        <Stat label="Prochaine confrontation" value={date} />
       </div>
     );
   }
@@ -53,7 +51,6 @@ function EstimateStats({ props }: { props: ConfrontationPanelProps }) {
         value={dividend ? formatPct(yieldFeesIncluded(dividend.record.grossPerShare, estimate.price, scpi.fees)) : '—'}
         caption={dividend ? `dividende ${dividend.record.year}` : 'dividende indisponible'}
       />
-      <Stat label="Prochaine confrontation" value={date} />
     </div>
   );
 }
@@ -288,7 +285,7 @@ function Limits({ props }: { props: ConfrontationPanelProps }) {
         </li>
         <li>Une ligne du carnet regroupe plusieurs ordres au même prix.</li>
         <li>Nous supposons qu'une exécution partielle est acceptée.</li>
-        <li>À un même prix, l'ordre de servitude suit l'ordre d'enregistrement, que nous ne connaissons pas.</li>
+        <li>À un même prix, les ordres sont servis dans leur ordre d'enregistrement, que nous ne connaissons pas.</li>
         <li>Les comparaisons se font sur les prix nets (hors frais).</li>
       </ul>
     </Note>

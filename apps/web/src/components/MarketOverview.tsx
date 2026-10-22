@@ -73,22 +73,6 @@ function MarketStats({ scpi, snapshot }: { scpi: ScpiInfo; snapshot: MarketSnaps
   return (
     <div className="grid grid-stats">
       <Stat
-        label="Dernier prix d'exécution (net vendeur)"
-        value={formatEur(lastExecutionPrice)}
-        emphasis
-        caption={
-          <>
-            {latest && <>confrontation du {formatDateFr(latest.date)}</>}
-            {lastBuyerPrice !== null && (
-              <>
-                {latest && ' · '}
-                {formatEur(lastBuyerPrice)} frais inclus
-              </>
-            )}
-          </>
-        }
-      />
-      <Stat
         label="Évolution depuis la 1re confrontation"
         value={evolution === null ? dash : formatSignedPct(evolution)}
         caption={
@@ -104,20 +88,6 @@ function MarketStats({ scpi, snapshot }: { scpi: ScpiInfo; snapshot: MarketSnaps
           realisationValue
             ? `valeur de réalisation ${formatEur(realisationValue.value)}${realisationValue.asOf ? ` au ${realisationValue.asOf}` : ''}`
             : 'valeur de réalisation non publiée'
-        }
-      />
-      <Stat
-        label="Prochaine confrontation"
-        value={snapshot.nextConfrontation ? formatDateFr(snapshot.nextConfrontation) : dash}
-        caption={
-          snapshot.orderDeadline ? (
-            <>
-              ordres à recevoir avant le {formatDateFr(snapshot.orderDeadline)} (heure de Paris)
-              {daysLabel(nextDays) && ` · ${daysLabel(nextDays)}`}
-            </>
-          ) : (
-            'date limite des ordres non publiée'
-          )
         }
       />
       <Stat
@@ -138,9 +108,9 @@ function MarketStats({ scpi, snapshot }: { scpi: ScpiInfo; snapshot: MarketSnaps
         />
       )}
       <Stat
-        label="Carnet visible"
+        label="Parts à vendre pour 1 demandée (carnet visible)"
         value={
-          bookEmpty ? dash : demanded > 0 ? `${frNumber(offered / demanded, 1)} à vendre pour 1 demandée` : 'Aucune demande'
+          bookEmpty ? dash : demanded > 0 ? frNumber(offered / demanded, 1) : 'Aucune demande'
         }
         caption={bookEmpty ? 'aucun ordre visible' : `${formatInt(offered)} parts à vendre · ${formatInt(demanded)} demandées`}
       />

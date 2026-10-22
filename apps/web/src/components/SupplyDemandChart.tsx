@@ -1,7 +1,7 @@
 import { CartesianGrid, Legend, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { formatEur, formatInt } from '@louve/core';
 import type { CurvePoint } from '@louve/core';
-import { axisProps, chart } from './chartTheme';
+import { axisProps, chart, legendProps } from './chartTheme';
 import './Panels.css';
 
 interface LabelPointProps {
@@ -44,7 +44,7 @@ export function SupplyDemandChart({ curve, price }: { curve: CurvePoint[]; price
             labelFormatter={(label) => `Prix limite : ${formatEur(Number(label))}`}
             formatter={(value, name) => [typeof value === 'number' ? `${formatInt(value)} parts` : String(value ?? ''), name]}
           />
-          <Legend formatter={(value: string) => <span style={{ color: chart.textSecondary }}>{value}</span>} />
+          <Legend {...legendProps} formatter={(value: string) => <span style={{ color: chart.textSecondary }}>{value}</span>} />
           {price !== null && (
             <ReferenceLine
               x={price}

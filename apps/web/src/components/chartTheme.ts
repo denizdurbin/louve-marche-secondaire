@@ -19,3 +19,9 @@ export const axisProps = {
   tick: { fill: chart.textSecondary, fontSize: chart.font },
   tickLine: false,
 } as const;
+
+export const legendProps = {
+  iconType: 'plainline',
+  iconSize: 14,
+  wrapperStyle: { fontSize: chart.font, paddingTop: 8 },
+} as const;

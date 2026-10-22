@@ -37,7 +37,7 @@ export function PurchaseEmailFlow({ scpi, snapshot, estimate, order, onOrderChan
   }));
   const bounds = useMemo(() => validityBounds(new Date()), []);
   const heading = useRef<HTMLHeadingElement>(null);
-  const firstRender = useRef(true);
+  const previousStep = useRef(step);
 
   // The yield simulator edits the same order: follow it unless our text already means the same number.
   useEffect(() => {
@@ -49,11 +49,10 @@ export function PurchaseEmailFlow({ scpi, snapshot, estimate, order, onOrderChan
   }, [order.shares, order.netPrice]);
 
   // Keyboard users: land on the step title after navigating, or on the first invalid field.
+  // Move focus to the new step's title only when the user changes step (not on mount, which would scroll the page).
   useEffect(() => {
-    if (firstRender.current) {
-      firstRender.current = false;
-      return;
-    }
+    if (previousStep.current === step) return;
+    previousStep.current = step;
     heading.current?.focus();
   }, [step]);
   useEffect(() => {

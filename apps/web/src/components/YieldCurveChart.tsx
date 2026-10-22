@@ -2,7 +2,7 @@ import { useId, useMemo, useState } from 'react';
 import { CartesianGrid, Legend, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { formatEur, formatPct, yieldCurve, yieldWithFixedFees } from '@louve/core';
 import type { FeeSchedule } from '@louve/core';
-import { axisProps, chart } from './chartTheme';
+import { axisProps, chart, legendProps } from './chartTheme';
 import { Card } from './ui';
 import { NumberField } from './NumberField';
 import './Panels.css';
@@ -127,7 +127,7 @@ export function YieldCurveChart(props: YieldCurveChartProps) {
                 labelFormatter={(label) => `Prix d'exécution : ${formatEur(Number(label))}`}
                 formatter={(value) => (typeof value === 'number' ? formatPct(value) : String(value ?? ''))}
               />
-              <Legend formatter={(value: string) => <span style={{ color: chart.textSecondary }}>{value}</span>} />
+              <Legend {...legendProps} formatter={(value: string) => <span style={{ color: chart.textSecondary }}>{value}</span>} />
               {refs.map((r, i) => (
                 <ReferenceLine
                   key={r.label}
