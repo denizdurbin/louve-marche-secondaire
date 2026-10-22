@@ -1,0 +1,40 @@
+.pef-stepper { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 24px; }
+.pef-stepper li { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: var(--text-3); }
+.pef-stepper li.is-current { color: var(--text); font-weight: 600; }
+.pef-stepper li.is-done { color: var(--text-2); }
+.pef-stepper-num {
+  display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px;
+  border-radius: 50%; border: 1px solid var(--border); background: var(--surface); font-size: 0.8rem;
+}
+.pef-stepper li.is-current .pef-stepper-num { background: var(--accent); border-color: var(--accent); color: #fff; }
+.pef-stepper li.is-done .pef-stepper-num { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+
+.pef-form { display: flex; flex-direction: column; gap: 16px; }
+.pef-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.pef-tight { margin: 0; }
+.card-title:focus { outline: none; }
+.card-title:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.pef-fieldset { border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.pef-fieldset legend { padding: 0; font-size: 0.85rem; color: var(--text-2); margin-bottom: 6px; }
+.pef-radios { display: flex; gap: 24px; }
+
+.pef-hints { display: flex; flex-direction: column; gap: 8px; }
+.pef-summary { display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; margin: 0; font-size: 0.9rem; }
+.pef-summary dt { color: var(--text-2); }
+.pef-summary dd { margin: 0; text-align: right; font-weight: 600; }
+.pef-summary .pef-total { border-top: 1px solid var(--border); padding-top: 6px; color: var(--text); font-weight: 600; }
+
+.pef-email { border: 1px solid var(--border); border-radius: 8px; background: #fff; overflow: hidden; }
+.pef-headers { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0; padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+.pef-headers dt { color: var(--text-3); }
+.pef-headers dd { margin: 0; overflow-wrap: anywhere; }
+.pef-body {
+  margin: 0; padding: 16px; white-space: pre-wrap; overflow-wrap: anywhere;
+  font: inherit; font-size: 0.9rem; max-height: 420px; overflow: auto;
+}
+.pef-body:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+button.pef-link {
+  background: none; border: 0; padding: 0; color: var(--accent); text-decoration: underline; font-size: inherit;
+}
