@@ -1,10 +1,14 @@
 import type { ReactNode } from 'react';
 
-export function Section(props: { id: string; step: string; title: string; intro?: ReactNode; children: ReactNode }) {
+export function Section(props: { id: string; step?: string; title: string; intro?: ReactNode; children: ReactNode }) {
   return (
     <section id={props.id} className="section">
       <header className="section-header">
-        <span className="section-step" aria-hidden="true">{props.step}</span>
+        {props.step && (
+          <span className="section-step" aria-hidden="true">
+            {props.step}
+          </span>
+        )}
         <h2>{props.title}</h2>
       </header>
       {props.intro && <p className="section-intro">{props.intro}</p>}

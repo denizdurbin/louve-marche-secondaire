@@ -157,3 +157,7 @@ button.link-button {
 button.link-button:hover { background: none; color: var(--accent-strong); }
 button.link-button:disabled { color: var(--text-3); text-decoration: none; opacity: 1; cursor: progress; }
 .meta-error { color: var(--error); }
+
+.how-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.how-grid .card { gap: 10px; }
+.how-steps { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; }

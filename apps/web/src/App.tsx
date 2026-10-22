@@ -13,6 +13,7 @@ import {
 import type { MarketResponse, ScpiInfo } from '@louve/core';
 import { useScpiData } from './useScpiData';
 import type { DraftOrder } from './order';
+import { HowItWorks } from './components/HowItWorks';
 import { MarketOverview } from './components/MarketOverview';
 import { YieldPanel } from './components/YieldPanel';
 import { ConfrontationPanel } from './components/ConfrontationPanel';
@@ -106,6 +107,7 @@ function Dashboard({ scpi, market, refresh }: { scpi: ScpiInfo; market: MarketRe
       )}
       <nav className="app-nav" aria-label="Sections">
         <div className="app-nav-inner">
+          <a href="#comment-ca-marche">Comment ça marche</a>
           <a href="#marche">Le marché</a>
           <a href="#rendement">Rendement</a>
           <a href="#confrontation">Prochaine confrontation</a>
@@ -114,6 +116,7 @@ function Dashboard({ scpi, market, refresh }: { scpi: ScpiInfo; market: MarketRe
       </nav>
       <div className="layout">
         <main className="app-main">
+          <HowItWorks scpi={scpi} />
           <MarketOverview scpi={scpi} snapshot={snapshot} estimate={estimate} />
           <YieldPanel
             scpi={scpi}
